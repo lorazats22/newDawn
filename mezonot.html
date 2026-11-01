@@ -4,32 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>מעקב הוצאות הילד</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap">
 <style>
-:root{--bg:#f3f6f7;--card:#fff;--ink:#1d2b30;--mute:#65767c;--line:#dde5e8;--acc:#1f7a6d;--acc2:#e8f3f1;--warn:#c2410c;--warnbg:#fdeee6;--ok:#1f7a6d;
+:root{--bg:#f4ece1;--card:#fffaf3;--ink:#3b2417;--mute:#8a6f5c;--line:#e4d5c3;--acc:#8b5a3c;--acc2:#f0e1d0;--warn:#b3361b;--warnbg:#fdeee6;--ok:#8b5a3c;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12191c;--card:#1a2428;--ink:#e6eef0;--mute:#91a3a9;--line:#2b3a40;--acc:#4fc3b0;--acc2:#1c3430;--warn:#fb923c;--warnbg:#3a2418;--ok:#4fc3b0}}
-:root[data-theme="dark"]{--bg:#12191c;--card:#1a2428;--ink:#e6eef0;--mute:#91a3a9;--line:#2b3a40;--acc:#4fc3b0;--acc2:#1c3430;--warn:#fb923c;--warnbg:#3a2418;--ok:#4fc3b0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1511;--card:#2a1e18;--ink:#f1e4d3;--mute:#b89f8a;--line:#4a372d;--acc:#d9a066;--acc2:#3a2a20;--warn:#ff8a5c;--warnbg:#3a2418;--ok:#d9a066}}
+:root[data-theme="dark"]{--bg:#1e1511;--card:#2a1e18;--ink:#f1e4d3;--mute:#b89f8a;--line:#4a372d;--acc:#d9a066;--acc2:#3a2a20;--warn:#ff8a5c;--warnbg:#3a2418;--ok:#d9a066}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Heebo',Arial,sans-serif;font-size:16px;line-height:1.5}
 main{max-width:960px;margin:0 auto;padding:20px 16px 48px}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-h1{font-size:24px;margin:0;font-weight:700}
-h2{font-size:18px;margin:0 0 12px;font-weight:700}
+h1{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:32px;margin:0;font-weight:700;letter-spacing:.2px}
+h2{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:22px;margin:0 0 12px;font-weight:700}
 .month{display:flex;align-items:center;gap:6px}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px}
 button:hover{border-color:var(--acc)}
 button:disabled{opacity:.4;cursor:default}
-button.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:500}
+button.primary{background:var(--acc);border-color:var(--acc);color:var(--card);font-weight:500}
 :root[data-theme="dark"] button.primary{color:#0b1416}
 input,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 10px rgba(80,45,20,.08);padding:14px 16px}
 .kpi .n{color:var(--mute);font-size:14px}
-.kpi .v{font-size:26px;font-weight:700;margin:2px 0}
+.kpi .v{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:28px;font-weight:700;margin:2px 0}
 .kpi .s{font-size:13px;color:var(--mute)}
 .kpi.total{background:var(--acc2);border-color:transparent}
 .kpi{text-align:center}
@@ -45,7 +45,7 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:8
 td.num input{width:90px}
 td input[data-wk]{width:56px}
 td input[type=checkbox]{width:auto;max-width:none;accent-color:var(--acc)}
-section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 10px rgba(80,45,20,.08);padding:16px;margin-bottom:20px}
 form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
 label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute)}
 .scroll{overflow-x:auto}
@@ -64,7 +64,7 @@ td input{width:100%;max-width:130px}
 <body>
 <main>
 <header>
-  <h1>מעקב הוצאות הילד</h1>
+  <h1>☕ מעקב הוצאות הילד</h1>
   <div class="month">
     <button id="prev" aria-label="חודש קודם">›</button>
     <input type="month" id="month">
@@ -144,7 +144,7 @@ function render(){
   const sum=id=>list.filter(e=>e.cat===id).reduce((a,e)=>a+e.amount,0);
   const total=list.reduce((a,e)=>a+e.amount,0);
   const fixed=list.filter(e=>e.type!=='once').reduce((a,e)=>a+e.amount,0);
-  const PAL=['#1f7a6d','#3b6fb6','#b5651d','#8a4fa3','#c0392b','#5f8d2f','#d19a00','#4a6572'];
+  const PAL=['#6f4e37','#c68b59','#a0522d','#8a6f5c','#b3361b','#7a8450','#d19a00','#4a3b32'];
   const C=2*Math.PI*40;
   const seg=(p,off,col)=>p<=0?'':`<circle cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="10" stroke-dasharray="${C*p/100} ${C}" stroke-dashoffset="${-C*off/100}" transform="rotate(-90 50 50)"/>`;
   const ring=(segs,center,label,sm)=>`<svg class="ring" viewBox="0 0 100 100" role="img" aria-label="${label}"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--line)" stroke-width="10"/>${segs}<text x="50" y="${sm?54:56}" text-anchor="middle" class="rt${sm?' sm':''}">${center}</text></svg>`;
