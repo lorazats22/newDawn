@@ -72,12 +72,13 @@ input{display:block;width:100%;margin-top:4px;padding:10px 12px;border:1px solid
 var KEY="laura-systems-v2";var editIdx=-1;
 var colors=["--c1","--c2","--c3","--c4","--c5","--c6"];
 var defaults=[
- {n:"בדרך למפתחות",u:"",d:"מעקב הוצאות וחיסכון לחזון הדירה"},
- {n:"הפינה של בן",u:"",d:"ההוצאות שלו והמזונות, במקום אחד"}
+ {n:"בדרך למפתחות",u:"keys.html",d:"מעקב הוצאות וחיסכון לחזון הדירה"},
+ {n:"הפינה של בן",u:"mezonot.html",d:"ההוצאות שלו והמזונות, במקום אחד"}
 ];
 var items;
 try{var s=localStorage.getItem(KEY);items=s?JSON.parse(s):null}catch(e){items=null}
 if(!Array.isArray(items))items=defaults.slice();
+items.forEach(function(it){if(!it.u&&it.n==="בדרך למפתחות")it.u="keys.html";if(!it.u&&it.n==="הפינה של בן")it.u="mezonot.html"});
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
 var grid=document.getElementById("grid");
 function render(){
