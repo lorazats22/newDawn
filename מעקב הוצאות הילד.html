@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מעקב הוצאות הילד</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f3f6f7;--card:#fff;--ink:#1d2b30;--mute:#65767c;--line:#dde5e8;--acc:#1f7a6d;--acc2:#e8f3f1;--warn:#c2410c;--warnbg:#fdeee6;--ok:#1f7a6d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12191c;--card:#1a2428;--ink:#e6eef0;--mute:#91a3a9;--line:#2b3a40;--acc:#4fc3b0;--acc2:#1c3430;--warn:#fb923c;--warnbg:#3a2418;--ok:#4fc3b0}}
+:root[data-theme="dark"]{--bg:#12191c;--card:#1a2428;--ink:#e6eef0;--mute:#91a3a9;--line:#2b3a40;--acc:#4fc3b0;--acc2:#1c3430;--warn:#fb923c;--warnbg:#3a2418;--ok:#4fc3b0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Heebo',Arial,sans-serif;font-size:16px;line-height:1.5}
+main{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:24px;margin:0;font-weight:700}
+h2{font-size:18px;margin:0 0 12px;font-weight:700}
+.month{display:flex;align-items:center;gap:6px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px}
+button:hover{border-color:var(--acc)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:500}
+:root[data-theme="dark"] button.primary{color:#0b1416}
+input,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .n{color:var(--mute);font-size:14px}
+.kpi .v{font-size:26px;font-weight:700;margin:2px 0}
+.kpi .s{font-size:13px;color:var(--mute)}
+.kpi.total{background:var(--acc2);border-color:transparent}
+.kpi{text-align:center}
+.ring{width:112px;height:112px;display:block;margin:8px auto 6px}
+.rt{fill:var(--ink);font-size:20px;font-weight:700;font-family:inherit}
+.rt.sm{font-size:13px;font-weight:500;fill:var(--mute)}
+.kpi.over{border-color:var(--warn)}
+.kpi.over .s b{color:var(--warn)}
+.kpi.debt{background:var(--ink);border-color:var(--ink);color:var(--bg);margin-top:14px}
+.kpi.debt .n,.kpi.debt .s{color:inherit;opacity:.8}
+.note{color:var(--mute);font-size:14px;margin:-6px 0 18px}
+.note b{color:var(--ink)}
+td.num input{width:90px}
+td input[data-wk]{width:56px}
+td input[type=checkbox]{width:auto;max-width:none;accent-color:var(--acc)}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);font-size:15px}
+th{font-weight:500;color:var(--mute);font-size:13px}
+td.num,th.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;background:var(--acc2);color:var(--acc)}
+.x{border:none;background:none;color:var(--mute);padding:2px 8px}
+.x:hover{color:var(--warn)}
+.empty{color:var(--mute);padding:12px 0}
+.msg{color:var(--warn);font-size:14px;min-height:20px;margin-top:8px}
+td input{width:100%;max-width:130px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>מעקב הוצאות הילד</h1>
+  <div class="month">
+    <button id="prev" aria-label="חודש קודם">›</button>
+    <input type="month" id="month">
+    <button id="next" aria-label="חודש הבא">‹</button>
+  </div>
+</header>
+
+<div class="kpis" id="kpis"></div>
+<div id="note"></div>
+
+<section>
+  <h2>הוספת הוצאה</h2>
+  <form id="f">
+    <label>תיאור<input id="desc" required placeholder="למשל: חוג שחייה"></label>
+    <label>סכום (₪)<input id="amt" type="number" step="0.01" min="0" required></label>
+    <label>קטגוריה<select id="cat"></select></label>
+    <label>סוג<select id="type"><option value="once">חד פעמית</option><option value="fixed">קבועה חודשית</option><option value="weekly">קבועה שבועית</option></select></label>
+    <label id="dl">תאריך<input id="date" type="date" required></label>
+    <button class="primary" type="submit">הוספה</button>
+  </form>
+</section>
+
+<section>
+  <h2 id="lt" style="display:flex;justify-content:space-between;align-items:center;gap:8px">הוצאות החודש<button id="pen" type="button" style="font-size:14px;font-weight:400" aria-pressed="false">✏️ עריכת סכומים</button></h2>
+  <div class="scroll"><table>
+    <thead><tr><th>תיאור</th><th>קטגוריה</th><th>סוג</th><th class="num">סכום</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div id="debt"></div>
+</section>
+
+<section>
+  <h2>ניהול קטגוריות</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>שם</th><th>מקסימום חודשי (לא חובה)</th><th>חיוב הגרוש</th><th class="num">הוצאו החודש</th><th class="num">נשאר</th><th></th></tr></thead>
+    <tbody id="cats"></tbody>
+  </table></div>
+  <form id="cf" style="margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+    <label>קטגוריה חדשה<input id="cn" required></label>
+    <label>מקסימום (לא חובה)<input id="cm" type="number" min="0" step="1"></label>
+    <label>חיוב הגרוש<select id="cs"><option value="0.5">חצי (50/50)</option><option value="1">מלא (100%)</option><option value="0">ללא</option></select></label>
+    <button class="primary" type="submit">הוספה</button>
+  </form>
+  <div class="msg" id="msg" role="status"></div>
+</section>
+</main>
+
+<script>
+const KEY='child-expenses-v1';
+const $=id=>document.getElementById(id);
+const fmt=n=>'₪'+Math.round(n*100)/100 .toLocaleString('he-IL');
+const money=n=>'₪'+(Math.round(n*100)/100).toLocaleString('he-IL');
+const uid=()=>Math.random().toString(36).slice(2,9);
+let S={cats:[{id:'c1',name:'רובד בסיס',max:null,split:false},{id:'c2',name:'הוצאות מדור',max:null,split:false}],exps:[]};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&p.cats&&p.exps)S=p}}catch(e){}
+S.cats.forEach(c=>{if(c.name==='מזונות')c.name='רובד בסיס';if(c.split===undefined)c.split=!(c.id==='c1'||c.id==='c2');if(c.share===undefined)c.share=c.split?0.5:0});
+const shareOf=e=>{const c=S.cats.find(c=>c.id===e.cat);return c?+c.share||0:0};const isSplit=e=>shareOf(e)>0;
+const monthDiff=(a,b)=>{const[ya,ma]=a.split('-').map(Number),[yb,mb]=b.split('-').map(Number);return (yb-ya)*12+mb-ma};
+const lastDay=m=>{const[y,mo]=m.split('-').map(Number);return new Date(y,mo,0)};
+const dn=d=>Math.round(d.getTime()/864e5);
+const weeksIn=(e,m)=>{const s=e.date.slice(0,7);if(m<s||(e.end&&m>e.end))return 0;if(e.wk&&e.wk[m]!=null)return e.wk[m];const ds=dn(new Date(e.date+'T00:00:00')),da=dn(new Date(m+'-01T00:00:00')),db=dn(lastDay(m));const lo=Math.max(da,ds),first=ds+Math.ceil((lo-ds)/7)*7;return first>db?0:Math.floor((db-first)/7)+1};
+const occ=(e,m)=>{const s=e.date.slice(0,7);if(s>m)return 0;if(e.type==='once')return 1;if(e.type==='weekly'){let t=0,mm=s;const en=(e.end&&e.end<m)?e.end:m;while(mm<=en){t+=weeksIn(e,mm);mm=shift(mm,1)}return t}const end=(e.end&&e.end<m)?e.end:m;return end<s?0:monthDiff(s,end)+1};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const mk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+let EDIT=false;
+const amtInput=e=>`<input type="number" min="0" step="0.01" value="${e.type==='weekly'?e.unit:e.amount}" data-amt="${e.id}" aria-label="סכום">`+(e.type==='weekly'?` × <input type="number" min="0" step="1" value="${e.n}" data-wk="${e.id}" aria-label="מספר שבועות">`:'');
+const START='2026-10';let M=mk(new Date());if(M<START)M=START;
+const shift=(m,k)=>{const[y,mo]=m.split('-').map(Number);return mk(new Date(y,mo-1+k,1))};
+const inMonth=(e,m)=>{const s=e.date.slice(0,7);return e.type!=='once'?(s<=m&&(!e.end||m<=e.end)):s===m};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const catName=id=>(S.cats.find(c=>c.id===id)||{name:'—'}).name;
+const say=t=>{$('msg').textContent=t||''};
+
+function render(){
+  $('month').value=M;$('month').min=START;$('pen').textContent=EDIT?'✔ סיום עריכה':'✏️ עריכת סכומים';$('pen').setAttribute('aria-pressed',EDIT);$('prev').disabled=M<=START;
+  const list=S.exps.filter(e=>inMonth(e,M)).map(e=>e.type==='weekly'?{...e,unit:e.amount,n:weeksIn(e,M),amount:e.amount*weeksIn(e,M)}:e);
+  const sum=id=>list.filter(e=>e.cat===id).reduce((a,e)=>a+e.amount,0);
+  const total=list.reduce((a,e)=>a+e.amount,0);
+  const fixed=list.filter(e=>e.type!=='once').reduce((a,e)=>a+e.amount,0);
+  const PAL=['#1f7a6d','#3b6fb6','#b5651d','#8a4fa3','#c0392b','#5f8d2f','#d19a00','#4a6572'];
+  const C=2*Math.PI*40;
+  const seg=(p,off,col)=>p<=0?'':`<circle cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="10" stroke-dasharray="${C*p/100} ${C}" stroke-dashoffset="${-C*off/100}" transform="rotate(-90 50 50)"/>`;
+  const ring=(segs,center,label,sm)=>`<svg class="ring" viewBox="0 0 100 100" role="img" aria-label="${label}"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--line)" stroke-width="10"/>${segs}<text x="50" y="${sm?54:56}" text-anchor="middle" class="rt${sm?' sm':''}">${center}</text></svg>`;
+  let k='';
+  const note=`<div class="note">סה״כ החודש <b>${money(total)}</b> · קבועות ${money(fixed)} · חד פעמיות ${money(total-fixed)}</div>`;
+  S.cats.forEach((c,i)=>{
+    if(c.id!=='c1'&&c.id!=='c2')return;
+    const v=sum(c.id),has=c.max!=null&&c.max!=='';
+    const over=has&&v>c.max,col=over?'var(--warn)':PAL[i%PAL.length];
+    const raw=has?(c.max?v/c.max*100:(v?100:0)):(total?v/total*100:0);
+    const pct=Math.min(100,raw);
+    k+=`<div class="kpi${over?' over':''}"><div class="n">${esc(c.name)}</div>${ring(seg(pct,0,col),Math.round(raw)+'%',esc(c.name)+' '+Math.round(raw)+'%')}<div class="v">${money(v)}</div>`+
+      (has?`<div class="s">${over?`<b>חריגה של ${money(v-c.max)}</b>`:`נשאר ${money(c.max-v)}`} מתוך ${money(c.max)}</div>`:`<div class="s">מסך ההוצאות · ללא מקסימום</div>`)+`</div>`;
+  });
+  const owedMonth=list.filter(isSplit).reduce((a,e)=>a+e.amount*shareOf(e),0);
+  const owedAll=S.exps.filter(isSplit).reduce((a,e)=>a+e.amount*shareOf(e)*occ(e,M),0);
+  const debt=`<div class="kpi debt"><div class="n">הגרוש חייב לך החודש</div><div class="v">${money(owedMonth)}</div><div class="s">מצטבר מתחילת היומן: ${money(owedAll)}</div></div>`;
+  $('kpis').innerHTML=k;$('note').innerHTML=note;$('debt').innerHTML=debt;
+  $('rows').innerHTML=list.length?list.sort((a,b)=>a.date<b.date?1:-1).map(e=>
+    `<tr><td>${esc(e.desc)}</td><td><span class="tag">${esc(catName(e.cat))}</span></td>
+    <td>${e.type==='weekly'?`קבועה שבועית<div style="font-size:12px;color:var(--mute)">${money(e.unit)} × ${e.n}</div>`:e.type==='fixed'?'קבועה חודשית':'חד פעמית'}</td><td class="num">${EDIT?amtInput(e):money(e.amount)}${isSplit(e)?`<div class="s" style="font-size:12px;color:var(--mute)">חלק הגרוש ${money(e.amount*shareOf(e))}</div>`:''}</td>
+    <td>${e.type!=='once'?`<button class="x" data-stop="${e.id}" title="להפסיק מהחודש הבא">הפסקה</button>`:''}<button class="x" data-del="${e.id}" aria-label="מחיקה">✕</button></td></tr>`).join(''):
+    `<tr><td colspan="5" class="empty">אין הוצאות בחודש הזה. אפשר להוסיף למעלה.</td></tr>`;
+  $('cats').innerHTML=S.cats.map(c=>{const v=sum(c.id),has=c.max!=null&&c.max!=='';
+    return `<tr><td>${esc(c.name)}</td><td><input type="number" min="0" step="1" value="${has?c.max:''}" data-max="${c.id}" placeholder="ללא"></td>
+    <td><select data-share="${c.id}" aria-label="חיוב הגרוש">${[[0,'ללא'],[0.5,'חצי (50/50)'],[1,'מלא (100%)']].map(([v,t])=>`<option value="${v}"${(+c.share||0)===v?' selected':''}>${t}</option>`).join('')}</select></td>
+    <td class="num">${money(v)}</td><td class="num">${has?money(c.max-v):'—'}</td>
+    <td><button class="x" data-dc="${c.id}" aria-label="מחיקת קטגוריה">✕</button></td></tr>`}).join('');
+  $('cat').innerHTML=S.cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+}
+
+$('prev').onclick=()=>{M=shift(M,-1);render()};
+$('next').onclick=()=>{M=shift(M,1);render()};
+$('month').onchange=e=>{if(e.target.value){M=e.target.value<START?START:e.target.value;render()}};
+$('type').onchange=e=>{$('dl').firstChild.textContent=e.target.value==='once'?'תאריך':'מתחילה בתאריך'};
+$('date').min=START+'-01';{const t=new Date().toISOString().slice(0,10);$('date').value=t<START+'-01'?START+'-01':t}
+
+$('f').onsubmit=ev=>{ev.preventDefault();
+  S.exps.push({id:uid(),desc:$('desc').value.trim(),amount:parseFloat($('amt').value),cat:$('cat').value,type:$('type').value,date:$('date').value});
+  save();$('desc').value='';$('amt').value='';M=$('date').value.slice(0,7);say('');render()};
+
+$('cf').onsubmit=ev=>{ev.preventDefault();
+  const mx=$('cm').value;S.cats.push({id:uid(),name:$('cn').value.trim(),max:mx===''?null:parseFloat(mx),share:parseFloat($('cs').value)});
+  save();$('cn').value='';$('cm').value='';say('');render()};
+
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.dataset.del){S.exps=S.exps.filter(x=>x.id!==t.dataset.del);save();render()}
+  if(t.dataset.stop){const x=S.exps.find(x=>x.id===t.dataset.stop);if(x){x.end=shift(M,-1);save();render()}}
+  if(t.dataset.dc){const id=t.dataset.dc;
+    if(S.exps.some(x=>x.cat===id)){say('אי אפשר למחוק קטגוריה שיש בה הוצאות. מחקי קודם את ההוצאות או העבירי אותן.');return}
+    S.cats=S.cats.filter(c=>c.id!==id);save();say('');render()}
+});
+document.addEventListener('change',e=>{
+  const id=e.target.dataset&&e.target.dataset.max;
+  if(id){const c=S.cats.find(c=>c.id===id);const v=e.target.value;c.max=v===''?null:parseFloat(v);save();render()}
+});
+$('pen').onclick=()=>{EDIT=!EDIT;render()};
+document.addEventListener('change',e=>{const sid=e.target.dataset&&e.target.dataset.share;if(sid){S.cats.find(c=>c.id===sid).share=parseFloat(e.target.value);save();render()}
+  const wid=e.target.dataset&&e.target.dataset.wk;if(wid){const x=S.exps.find(x=>x.id===wid),v=parseInt(e.target.value,10);if(x&&v>=0){x.wk=x.wk||{};x.wk[M]=v;save();render()}}
+  const aid=e.target.dataset&&e.target.dataset.amt;if(aid){const x=S.exps.find(x=>x.id===aid),v=parseFloat(e.target.value);if(x&&v>=0){x.amount=v;save();render()}}});
+render();
+</script>
+</body>
+</html>
