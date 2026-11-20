@@ -83,7 +83,7 @@ header{gap:12px;flex-wrap:wrap}
   <div class="card"><h2>היסטוריה</h2><div id="hist"></div></div>
  </section>
  <section class="col">
-  <div class="card"><h2 id="dTitle"></h2><div class="stats" id="stats"></div>
+  <div class="card"><div class="ch"><h2 id="dTitle"></h2><button class="theme" data-tdelx="1">מחיקת סוג חשבון</button></div><div class="stats" id="stats"></div>
    <div class="tabs"><button data-m="amount" class="on">סכום</button><button data-m="usage">צריכה</button></div>
    <div class="scroll"><div id="chart"></div></div></div>
   <div class="card"><h2 id="tTitle"></h2>
@@ -150,13 +150,14 @@ function tasks(){
  $('tasks').innerHTML=a.length?a.map(x=>`<li class="${x.done?'done':''}"><input type="checkbox" style="width:auto;margin:0" data-chk="${x.id}" ${x.done?'checked':''} aria-label="בוצע"><div class="grow t">${esc(x.text)}${x.due?`<small>עד ${x.due.split('-').reverse().join('/')}</small>`:''}</div><button class="x" data-tdel="${x.id}" aria-label="מחיקה">×</button></li>`).join(''):'<div class="empty">אין משימות לחשבון הזה.</div>';
 }
 document.addEventListener('click',e=>{
- const t=e.target.closest('[data-t],[data-add],[data-del],[data-m],[data-tdel]');if(!t)return;
+ const t=e.target.closest('[data-t],[data-add],[data-del],[data-m],[data-tdel],[data-tdelx]');if(!t)return;
  const d=t.dataset;
  if(d.t){S.cur=d.t}
  else if(d.add){const n=prompt('שם סוג החשבון (למשל: ועד בית)');if(!n||!n.trim())return;const u=prompt('יחידת צריכה (לא חובה)')||'';const id=uid();S.types.push({id,name:n.trim(),unit:u.trim(),icon:'🧾'});S.cur=id}
  else if(d.del){S.bills[cur().id]=(S.bills[cur().id]||[]).filter(x=>x.id!==d.del)}
  else if(d.m){metric=d.m;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===t))}
  else if(d.tdel){S.tasks[cur().id]=S.tasks[cur().id].filter(x=>x.id!==d.tdel)}
+ else if(d.tdelx){const y=cur(),n=(S.bills[y.id]||[]).length;if(S.types.length<2){alert('חייב להישאר לפחות סוג חשבון אחד');return}if(!confirm('למחוק את "'+y.name+'" עם '+n+' חשבונות והמשימות שלו?'))return;S.types=S.types.filter(x=>x.id!==y.id);delete S.bills[y.id];delete S.tasks[y.id];S.cur=S.types[0].id}
  save();render();
 });
 document.addEventListener('change',e=>{const c=e.target.dataset.chk;if(!c)return;const x=S.tasks[cur().id].find(y=>y.id===c);x.done=e.target.checked;save();render()});
