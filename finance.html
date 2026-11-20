@@ -52,11 +52,24 @@ li.done .t{text-decoration:line-through;color:var(--muted)}
 .tadd button{background:var(--caramel);color:#2a1d16;border:0;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer}
 .empty{color:var(--muted);padding:8px 0}
 .scroll{overflow-x:auto}
+header{gap:12px;flex-wrap:wrap}
+.sw{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:3px}
+.sw button{border:0;background:none;border-radius:18px;padding:6px 18px;cursor:pointer;color:var(--muted)}
+.sw button.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
+#fStats{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:8px}.ch h2{margin:0;flex:1}
+.pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:0 8px;font-size:13px;color:var(--muted);margin-inline-end:6px}
+.mini{display:flex;gap:8px;margin-top:10px}.mini button{flex:1;background:none;border:1px dashed var(--line);border-radius:8px;padding:6px;color:var(--muted);cursor:pointer}
+.sub{font-size:14px;color:var(--muted);margin:14px 0 4px}
+.xtadd{display:grid;grid-template-columns:1fr auto;gap:8px;margin:8px 0}
+.xtadd button{background:var(--caramel);color:#2a1d16;border:0;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer}
+.xnote{width:100%;margin-top:4px;padding:9px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;resize:vertical;min-height:64px;font:inherit;color:inherit}
+.xnote:focus-visible{outline:2px solid var(--caramel);outline-offset:2px}
 </style>
 </head>
 <body>
-<header><h1>☕ מעקב חשבונות</h1><button class="theme" id="theme">מצב כהה / בהיר</button></header>
-<nav id="nav"></nav>
+<header><h1>☕ מעקב חשבונות</h1><div class="sw"><button data-v="var" class="on">משתנים</button><button data-v="fix">קבועים</button></div><button class="theme" id="theme">מצב כהה / בהיר</button></header>
+<div id="varView"><nav id="nav"></nav>
 <main>
  <section class="col">
   <div class="card"><h2 id="fTitle"></h2>
@@ -77,7 +90,16 @@ li.done .t{text-decoration:line-through;color:var(--muted)}
    <div class="tadd"><input id="tt" placeholder="למשל: לבדוק את המונה"><input type="date" id="td" aria-label="תאריך יעד"><button id="tb">הוספה</button></div>
    <ul id="tasks"></ul></div>
  </section>
-</main>
+</main></div>
+<div id="fixView" hidden><main>
+ <section class="col"><div class="card"><h2>הוספת חשבון קבוע</h2>
+  <label>שם<input id="xn" maxlength="50" placeholder="למשל: ביטוח בריאות"></label>
+  <div class="row"><label>סכום חודשי (₪)<input type="number" id="xa" min="0" step="0.01"></label><label>יום חיוב<input type="number" id="xd" min="1" max="31"></label></div>
+  <div class="row"><label>עבור מי<select id="xw"></select></label><label>קטגוריה<select id="xc"></select></label></div>
+  <button class="primary" id="xs">הוספת חשבון</button>
+  <div class="mini"><button id="addCat">+ קטגוריה</button><button id="addWho">+ אדם</button></div></div></section>
+ <section class="col"><div class="stats" id="fStats"></div><div id="fCats"></div></section>
+</main></div>
 <script>
 const KEY='bills-v1';
 const DEF={cur:'water',types:[{id:'water',name:'מים',unit:'מ"ק',icon:'💧'},{id:'elec',name:'חשמל',unit:'קוט"ש',icon:'⚡'},{id:'gas',name:'גז',unit:'מ"ק',icon:'🔥'},{id:'tax',name:'ארנונה',unit:'',icon:'🏠'},{id:'net',name:'אינטרנט',unit:'',icon:'📶'}],bills:{},tasks:{}};
@@ -100,7 +122,7 @@ function render(){
  $('fuL').textContent='צריכה'+(t.unit?' ('+t.unit+')':'');
  const b=bills();
  $('hist').innerHTML=b.length?'<ul>'+b.slice().reverse().map(x=>`<li><div class="grow"><b>${lbl(x.month)}</b> · ₪${fmt(x.amount)}${x.usage!==''&&x.usage!=null?' · '+fmt(x.usage)+' '+esc(t.unit):''}${x.note?`<small>${esc(x.note)}</small>`:''}</div><button class="x" data-del="${x.id}" aria-label="מחיקה">×</button></li>`).join('')+'</ul>':'<div class="empty">עוד אין חשבונות. הוסיפי את הראשון בטופס.</div>';
- stats(b);chart(b);tasks();
+ stats(b);chart(b);tasks();renderFixed();
 }
 function stats(b){
  if(!b.length){$('stats').innerHTML='<div class="empty">הנתונים יופיעו כאן אחרי ההזנה הראשונה.</div>';return}
@@ -148,6 +170,38 @@ $('save').onclick=()=>{
 $('tb').onclick=()=>{const v=$('tt').value.trim();if(!v)return;const id=cur().id;(S.tasks[id]=S.tasks[id]||[]).push({id:uid(),text:v,due:$('td').value,done:false});$('tt').value='';$('td').value='';save();render()};
 $('tt').addEventListener('keydown',e=>{if(e.key==='Enter')$('tb').click()});
 $('theme').onclick=()=>{const r=document.documentElement,dark=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=dark?'light':'dark'};
+S.fixed=S.fixed||{cats:[{id:'ins',name:'ביטוחים',icon:'🛡️'},{id:'hobby',name:'חוגים',icon:'🎨'},{id:'sub',name:'מנויים',icon:'📺'},{id:'home',name:'דיור',icon:'🏠'}],people:['אני','הילד'],items:[],tasks:{}};
+function renderFixed(){
+ const F=S.fixed,w=$('xw').value,c=$('xc').value;
+ $('xw').innerHTML=F.people.map(p=>`<option>${esc(p)}</option>`).join('');
+ $('xc').innerHTML=F.cats.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+ if(F.people.includes(w))$('xw').value=w;if(F.cats.some(x=>x.id===c))$('xc').value=c;
+ const sum=a=>a.reduce((s,x)=>s+x.amount,0);
+ $('fStats').innerHTML=`<div class="stat"><b>₪${fmt(sum(F.items))}</b><span>סה"כ לחודש</span></div>`+F.people.map(p=>`<div class="stat"><b>₪${fmt(sum(F.items.filter(x=>x.who===p)))}</b><span>${esc(p)}</span></div>`).join('');
+ $('fCats').innerHTML=F.cats.map(c=>{
+  const it=F.items.filter(x=>x.cat===c.id).sort((a,b)=>(+a.day||99)-(+b.day||99)),ts=(F.tasks[c.id]||[]).slice().sort((a,b)=>a.done-b.done);
+  return `<div class="card"><div class="ch"><h2>${c.icon} ${esc(c.name)}</h2><b>₪${fmt(sum(it))}</b><button class="x" data-xcdel="${c.id}" aria-label="מחיקת קטגוריה">×</button></div>`
+  +(it.length?'<ul>'+it.map(x=>`<li><div class="grow"><b>${esc(x.name)}</b><small><span class="pill">${esc(x.who)}</span>${x.day?'כל '+x.day+' בחודש':''}</small></div><span>₪${fmt(x.amount)}</span><button class="x" data-xdel="${x.id}" aria-label="מחיקה">×</button></li>`).join('')+'</ul>':'<div class="empty">אין עדיין חשבונות בקטגוריה.</div>')
+  +`<div class="sub">משימות</div><div class="xtadd"><input class="xti" placeholder="משימה חדשה"><button data-xtadd="${c.id}">הוספה</button></div><ul>`
+  +ts.map(t=>`<li class="${t.done?'done':''}"><input type="checkbox" style="width:auto;margin:0" data-xchk="${c.id}|${t.id}" ${t.done?'checked':''} aria-label="בוצע"><div class="grow t">${esc(t.text)}</div><button class="x" data-xtdel="${c.id}|${t.id}" aria-label="מחיקה">×</button></li>`).join('')+`</ul><div class="sub">הערות</div><textarea class="xnote" data-xnote="${c.id}" rows="2" placeholder="אפשר לכתוב כאן כל דבר: מספרי פוליסה, אנשי קשר, תנאים…" aria-label="הערות לקטגוריה ${esc(c.name)}">${esc((F.notes||{})[c.id]||'')}</textarea></div>`;
+ }).join('')||'<div class="card empty">הוסיפי קטגוריה כדי להתחיל.</div>';
+}
+function addTask(btn){const i=btn.closest('.card').querySelector('.xti'),v=i.value.trim();if(!v)return;const k=btn.dataset.xtadd;(S.fixed.tasks[k]=S.fixed.tasks[k]||[]).push({id:uid(),text:v,done:false});save();render()}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-v],[data-xdel],[data-xcdel],[data-xtadd],[data-xtdel]');if(!t)return;const d=t.dataset,F=S.fixed;
+ if(d.v){$('varView').hidden=d.v!=='var';$('fixView').hidden=d.v!=='fix';document.querySelectorAll('.sw button').forEach(x=>x.classList.toggle('on',x===t));return}
+ if(d.xdel)F.items=F.items.filter(x=>x.id!==d.xdel);
+ else if(d.xcdel){const n=F.items.filter(x=>x.cat===d.xcdel).length;if(n&&!confirm('למחוק את הקטגוריה ואת '+n+' החשבונות שבה?'))return;F.cats=F.cats.filter(x=>x.id!==d.xcdel);F.items=F.items.filter(x=>x.cat!==d.xcdel);delete F.tasks[d.xcdel];delete (F.notes||{})[d.xcdel]}
+ else if(d.xtadd){addTask(t);return}
+ else if(d.xtdel){const[c,i]=d.xtdel.split('|');F.tasks[c]=F.tasks[c].filter(x=>x.id!==i)}
+ save();render();
+});
+document.addEventListener('change',e=>{const k=e.target.dataset.xchk;if(!k)return;const[c,i]=k.split('|');S.fixed.tasks[c].find(x=>x.id===i).done=e.target.checked;save();render()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('xti'))addTask(e.target.nextElementSibling)});
+document.addEventListener('input',e=>{const k=e.target.dataset.xnote;if(!k)return;S.fixed.notes=S.fixed.notes||{};S.fixed.notes[k]=e.target.value;save()});
+$('xs').onclick=()=>{const n=$('xn').value.trim(),a=$('xa').value;if(!$('xc').value){alert('קודם מוסיפים קטגוריה');return}if(!n||a===''){$('xn').focus();return}S.fixed.items.push({id:uid(),cat:$('xc').value,name:n,who:$('xw').value,amount:+a,day:$('xd').value});$('xn').value=$('xa').value=$('xd').value='';save();render()};
+$('addCat').onclick=()=>{const n=prompt('שם הקטגוריה (למשל: רכב)');if(!n||!n.trim())return;S.fixed.cats.push({id:uid(),name:n.trim(),icon:'📁'});save();render()};
+$('addWho').onclick=()=>{const n=prompt('שם האדם (למשל: בן/בת זוג)');if(!n||!n.trim()||S.fixed.people.includes(n.trim()))return;S.fixed.people.push(n.trim());save();render()};
 render();
 </script>
 </body>
